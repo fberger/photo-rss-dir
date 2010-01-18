@@ -33,5 +33,6 @@ def print_channel(channel):
     print channel_to_mrss(channel)
 
 if __name__ == "__main__":
+    print "Content-Type: text/xml\n\n"
     print_channel(build_channel(find_photos('photos/'),
                                 'http://localhost/photos/'))
