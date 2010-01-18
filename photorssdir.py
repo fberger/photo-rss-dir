@@ -19,7 +19,7 @@ def find_photos(dir):
     Finds the photos on the hard drive and returns them ordered by date
     '''
     photos = [(photo, os.stat(os.path.join(dir, photo))[stat.ST_MTIME]) for photo in os.listdir(dir) if is_image(photo.lower())]
-    return [photo[0] for photo in sorted(photos, key=itemgetter(1))]
+    return [photo[0] for photo in sorted(photos, key=itemgetter(1), reverse=True)]
 
 def build_item(photo, url_prefix):
     return MRSSItem(photo, contents = [MRSSMediaContent(url_prefix + photo, type="image/jpeg")])
@@ -33,6 +33,6 @@ def print_channel(channel):
     print channel_to_mrss(channel)
 
 if __name__ == "__main__":
-    print "Content-Type: text/xml\n\n"
-    print_channel(build_channel(find_photos('photos/'),
-                                'http://localhost/photos/'))
+    print "Content-Type: text/xml; charset=utf-8\n"
+    print_channel(build_channel(find_photos('photosdir'),
+                                'http://localhost/photosdir/'))
