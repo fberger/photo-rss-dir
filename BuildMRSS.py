@@ -13,20 +13,22 @@ class MRSSChannel:
     """
     Class that represent channel node of the Sonettic playlist MRRS.
     """
-    def __init__(self, id, items = None, nodes = None, poster = None, ads = None):
+    def __init__(self, title, link, description, items = None, 
+                 nodes = None, poster = None, ads = None):
+        self.link = link
+        self.title = title
+        self.description = description
         self.items = items
         self.nodes = nodes  
         self.poster = poster
-        self.id = id
         self.ads = ads
-        
     
 class MRSSItem:
     """
     Class representing item node of the Sonettic playlist MRSS feed.
     """
-    def __init__(self, id, nodes = None, ads = None, poster = None, contents = None):
-        self.id = id
+    def __init__(self, title, nodes = None, ads = None, poster = None, contents = None):
+        self.title = title
         self.nodes = nodes 
         self.ads = ads
         self.poster = poster
@@ -52,7 +54,7 @@ class MRSSMediaContent:
     Class represent media:content node of the Sonettic playlist MRSS feed.
     """
     def __init__(self, url, duration = None, lang = None, start = None, mediaPoprating = None,
-                 thumbnails = None, chapters = None, nodes = None):
+                 thumbnails = None, chapters = None, nodes = None, type = None):
         self.url = url
         self.duration = duration
         self.lang = lang
@@ -61,6 +63,7 @@ class MRSSMediaContent:
         self.thumbnails  = thumbnails
         self.chapters = chapters
         self.nodes = nodes
+        self.type = type
         
     def xml(self):
         data = {}
@@ -68,6 +71,7 @@ class MRSSMediaContent:
         if self.lang: data["lang"] = self.lang
         if self.duration: data["duration"] = self.duration
         if self.start: data["start"] = self.start
+        if self.type: data["type"] = self.type
         return data
         
 class MRSSMediaThumbnail:
@@ -126,7 +130,9 @@ def channel_to_mrss(channel):
     Return MRSS feed from the channel node.
     """
     channel_el = ET.Element('channel')
-    ET.SubElement(channel_el, "id").text = channel.id
+    ET.SubElement(channel_el, "title").text = channel.title
+    ET.SubElement(channel_el, 'link').text = channel.link
+    ET.SubElement(channel_el, 'description').text = channel.description
     if channel.poster:
             ET.SubElement(channel_el, 'poster', {"url" : channel.poster.url,
                                                           "width" : channel.poster.width,
@@ -138,7 +144,8 @@ def channel_to_mrss(channel):
             ET.SubElement(channel_el, node.name, node.attributes).text = node.value
     for item in channel.items:
         item_el = ET.SubElement(channel_el, 'item')
-        ET.SubElement(item_el, 'id').text = item.id
+        ET.SubElement(item_el, 'title').text = item.title
+
         if item.poster:
             ET.SubElement(item_el, 'poster', {"url" : item.poster.url,
                                                           "width" : item.poster.width,
