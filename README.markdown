@@ -3,8 +3,8 @@ Testing
 
 To test the cgi script change the location of PHOTO_DIR in the settings.py file to point to the photos folder in the photo-rss-dir. Then run:
 
-   python -m CGIHTTPServer
-   curl http://localhost:8000/cgi-bin/photorssdir.py
+   	python -m CGIHTTPServer
+	curl http://localhost:8000/cgi-bin/photorssdir.py
 
 The result should look like this:
 
