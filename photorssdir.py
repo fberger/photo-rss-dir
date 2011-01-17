@@ -3,8 +3,12 @@
 import os
 import stat
 from operator import itemgetter
+import datetime
 
 from BuildMRSS import *
+
+import settings
+import facebook
 
 image_extensions = ['jpeg', 'jpg']
 
@@ -14,19 +18,34 @@ def is_image(filename):
             return True
     return False
 
-def find_photos(dir):
+def get_facebook_photos():
+    try:
+        graph = facebook.GraphAPI(settings.FACEBOOK_OAUTH_TOKEN)
+        photos = graph.get_connections('me', 'photos')
+        data = photos['data']
+        photos = []
+        for photo in data:
+            created_time = datetime.datetime.strptime(photo['created_time'], '%Y-%m-%dT%H:%M:%S+0000')
+            source = photo['source']
+            photos.append((source, created_time))
+        return photos
+    except:
+        return []
+
+def find_photos(dir, url_prefix):
     '''
     Finds the photos on the hard drive and returns them ordered by date
     '''
-    photos = [(photo, os.stat(os.path.join(dir, photo))[stat.ST_MTIME]) for photo in os.listdir(dir) if is_image(photo.lower())]
+    photos = [(url_prefix + photo, datetime.datetime.utcfromtimestamp(os.stat(os.path.join(dir, photo))[stat.ST_MTIME])) for photo in os.listdir(dir) if is_image(photo.lower())]
+    photos.extend(get_facebook_photos())
     return [photo[0] for photo in sorted(photos, key=itemgetter(1), reverse=True)]
 
-def build_item(photo, url_prefix):
-    return MRSSItem(photo, contents = [MRSSMediaContent(url_prefix + photo, type="image/jpeg")])
+def build_item(photo):
+    return MRSSItem(photo, contents = [MRSSMediaContent(photo, type="image/jpeg")])
 
-def build_channel(photos, url_prefix):
+def build_channel(photos):
     channel = MRSSChannel('title', 'http://localhost/', 'description')
-    channel.items = [build_item(photo, url_prefix) for photo in photos]
+    channel.items = [build_item(photo) for photo in photos]
     return channel
     
 def print_channel(channel):
@@ -34,5 +53,6 @@ def print_channel(channel):
 
 if __name__ == "__main__":
     print "Content-Type: text/xml; charset=utf-8\n"
-    print_channel(build_channel(find_photos('photosdir'),
-                                'http://localhost/photosdir/'))
+    print_channel(build_channel(find_photos(settings.PHOTO_DIR,
+                                            settings.SERVER_PATH)))
+
